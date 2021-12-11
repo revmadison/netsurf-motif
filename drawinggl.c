@@ -600,6 +600,7 @@ motifgl_plot_text(const struct redraw_context *ctx,
 	}
 
 	const char *utf8Free = stringToUTF8FreeString(text, length);
+	const char *ptr = utf8Free;	// This may be offset if x<0
 	XFontStruct *fontStruct = fontStructForFontStyle(fstyle);
 
 	if(cachedFontSize == 0) {
@@ -636,11 +637,31 @@ motifgl_plot_text(const struct redraw_context *ctx,
 	}
 
 	set_glcolor(fstyle->foreground);
-	glRasterPos3f(x, y, -2.0f);
+
+	if(x < 0) {
+		// This won't work by default, because glRasterPos treats negative values as invalid
+		int tw = 0;
+		int len = strlen(utf8Free);
+		int i = 0;
+		while(x+tw < 0 && i < len) {
+			i++;
+			tw = XTextWidth(cachedFontStructs[found], utf8Free, i);
+		}
+		if(i >= len) {
+			ptr = NULL;
+		} else {
+			ptr = utf8Free+i;
+			x += tw;
+		}
+	}
+
+	if(ptr) {
+		glRasterPos3f(x, y, -2.0f);
 
 //printf("Drawing %s with color 0x%x", utf8Free, fstyle->foreground);
-	glListBase(cachedFontDisplayLists[found]);
-	glCallLists(strlen(utf8Free), GL_UNSIGNED_BYTE, (unsigned char *)utf8Free);
+		glListBase(cachedFontDisplayLists[found]);
+		glCallLists(strlen(ptr), GL_UNSIGNED_BYTE, (unsigned char *)ptr);
+	}
 
 	free(utf8Free);
 
