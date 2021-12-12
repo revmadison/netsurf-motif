@@ -38,8 +38,9 @@ CFLAGS += '-DNETSURF_MOTIF_FONT_MONOSPACE_BOLD="$(NETSURF_MOTIF_FONT_MONOSPACE_B
 CFLAGS += '-DNETSURF_MOTIF_FONT_CURSIVE="$(NETSURF_MOTIF_FONT_CURSIVE)"'
 CFLAGS += '-DNETSURF_MOTIF_FONT_FANTASY="$(NETSURF_MOTIF_FONT_FANTASY)"'
 
-LDFLAGS += -lXm -lXt -lXpm -lX11 -lXext -lPW -lm -ldicl-0.1 -liconv -Wl,--allow-shlib-undefined
-# For GL frontend LDFLAGS += -lXm -lXt -lXpm -lX11 -lXext -lPW -lm -ldicl-0.1 -liconv -lGL -lGLcore -Wl,--allow-shlib-undefined
+#LDFLAGS += -lXm -lXt -lXpm -lX11 -lXext -lPW -lm -ldicl-0.1 -liconv -Wl,--allow-shlib-undefined
+# For GL frontend 
+LDFLAGS += /usr/lib32/libX11.so.1 /usr/lib32/libXext.a /usr/lib32/libXt.a /usr/lib32/libXm.so.1 /usr/lib32/libXpm.so.1 -lGL -lGLcore -lPW -lm -ldicl-0.1 -liconv -Wl,--allow-shlib-undefined -Wl,-rpath-link=/usr/lib32 -Wl,-rpath=/usr/lib32:/usr/sgug/lib32
 
 # ---------------------------------------------------------------------------
 # Target setup

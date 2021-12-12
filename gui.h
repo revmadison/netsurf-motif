@@ -21,7 +21,7 @@
 
 #include <X11/Intrinsic.h>
 
-//#define NSMOTIF_USE_GL 1
+#define NSMOTIF_USE_GL 1
 
 /* bounding box */
 typedef struct nsfb_bbox_s bbox_t;
