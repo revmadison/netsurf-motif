@@ -39,7 +39,7 @@
 #include "motif/bitmap.h"
 
 #ifdef NSMOTIF_USE_GL
-
+#include "/usr/include/GL/glxtokens.h"
 #include <GL/glx.h>
 
 extern Display *motifDisplay;

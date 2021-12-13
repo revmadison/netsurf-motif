@@ -76,6 +76,7 @@
 #include "motif/corewindow.h"
 
 #ifdef NSMOTIF_USE_GL
+#include "/usr/include/GL/glxtokens.h"
 #include <GL/glx.h>
 #endif
 
