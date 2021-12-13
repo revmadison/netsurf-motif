@@ -40,6 +40,7 @@
 #include "netsurf/cookie_db.h"
 #include "content/fetch.h"
 
+#include <X11/keysym.h>
 #include <Xm/AtomMgr.h>
 #include <Xm/CutPaste.h>
 #include <Xm/DialogS.h>

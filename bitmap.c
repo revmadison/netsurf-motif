@@ -33,6 +33,7 @@
 #include "netsurf/content.h"
 
 #include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 #include <X11/extensions/shape.h>
 #include <Xm/DrawingA.h>
 #include <stdlib.h>

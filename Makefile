@@ -8,7 +8,9 @@
 # ----------------------------------------------------------------------------
 NETSURF_FEATURE_RSVG_CFLAGS := -DWITH_RSVG
 
-CFLAGS += -std=c99 -g \
+INCLUDE_DIRS += /usr/include /usr/sgug/include
+
+CFLAGS += -std=c99 -g -v -nostdinc \
 	  -Dmotif -Dnsmotif -Dsmall -DNO_IPV6 -Wno-error \
           -Wno-discarded-qualifiers -Wno-missing-prototypes \
           -Wno-implicit-function-declaration -Wno-implicit-fallthrough \

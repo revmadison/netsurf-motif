@@ -47,6 +47,7 @@
 #include "netsurf/plot_style.h"
 #include "netsurf/plotters.h"
 
+#include <X11/keysym.h>
 #include <Xm/AtomMgr.h>
 #include <Xm/CutPaste.h>
 #include <Xm/DialogS.h>
