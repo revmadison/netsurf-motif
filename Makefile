@@ -8,16 +8,18 @@
 # ----------------------------------------------------------------------------
 NETSURF_FEATURE_RSVG_CFLAGS := -DWITH_RSVG
 
-INCLUDE_DIRS += /usr/include /usr/sgug/include
+INCLUDE_DIRS += /usr/sgug/lib/gcc/mips-sgi-irix6.5/9/include frontends/motif/patches /usr/include /usr/sgug/include
 
 CFLAGS += -std=c99 -g -v -nostdinc \
 	  -Dmotif -Dnsmotif -Dsmall -DNO_IPV6 -Wno-error \
           -Wno-discarded-qualifiers -Wno-missing-prototypes \
           -Wno-implicit-function-declaration -Wno-implicit-fallthrough \
           -Wno-unused-variable -Wno-unused-function -Wno-nested-externs \
-          -Wno-missing-declarations \
+          -Wno-missing-declarations -Wno-expansion-to-defined \
+          -Wno-unknown-pragmas -Wno-redundant-decls \
           -I/usr/sgug/include/libdicl-0.1 -D_SGI_SOURCE \
-          -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS 
+          -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS -DDUK_F_UCLIBC 
+
 
 #CFLAGS += -std=c99 -g -nostdinc \
 #	  -Dmotif -Dsmall -DNO_IPV6 -Wno-error -I/usr/include -I/usr/sgug/include/libdicl-0.1 -D_SGI_SOURCE -D_SGI_MP_SOURCE -D_SGI_REENTRANT_FUNCTIONS 
