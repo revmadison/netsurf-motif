@@ -2401,6 +2401,67 @@ void setupBookmarksMenu() {
 	}
 }
 
+static XVisualInfo *choose_glx_visual(int want_db) {
+	XVisualInfo template;
+	XVisualInfo *vi_list;
+	XVisualInfo *best = NULL;
+	int best_rgb_bpp = 0, best_other_bpp = 99999;
+	int vi_count;
+	
+	template.screen = DefaultScreen(motifDisplay);
+	vi_list = XGetVisualInfo(motifDisplay, VisualScreenMask, &template, &vi_count);
+	if (!vi_list) return NULL;
+
+	for (int i = 0; i < vi_count; i++) {
+		int val, res, w = 0;
+		int r_size, g_size, b_size, rgb_bpp;
+		int d_size, s_size, a_size, other_bpp;
+
+		res = glXGetConfig(motifDisplay, vi_list + i, GLX_USE_GL, &val);
+		if (res || val == False) continue;	// Doesn't support GL, next
+		res = glXGetConfig(motifDisplay, vi_list + i, GLX_RGBA, &val);
+		if (res || val == False) continue;	// Not RGB, next
+
+		glXGetConfig(motifDisplay, vi_list + i, GLX_DOUBLEBUFFER, &val);
+		if((want_db) && (val == False)) continue;	// no DB, next
+		if((!want_db) && (val == True)) continue; // DB, don't want, next
+
+		glXGetConfig(motifDisplay, vi_list + i, GLX_RED_SIZE, &r_size);
+		glXGetConfig(motifDisplay, vi_list + i, GLX_GREEN_SIZE, &g_size);
+		glXGetConfig(motifDisplay, vi_list + i, GLX_BLUE_SIZE, &b_size);
+		rgb_bpp = r_size+g_size+b_size;
+		if(rgb_bpp > 24) continue;	// We don't want something this large, next
+
+
+		glXGetConfig(motifDisplay, vi_list + i, GLX_DEPTH_SIZE, &d_size);
+		glXGetConfig(motifDisplay, vi_list + i, GLX_STENCIL_SIZE, &s_size);
+		glXGetConfig(motifDisplay, vi_list + i, GLX_ALPHA_SIZE, &a_size);
+		other_bpp = d_size+s_size+a_size;
+
+		if(rgb_bpp > best_rgb_bpp) {
+			best = &vi_list[i];
+			best_rgb_bpp = rgb_bpp;
+			best_other_bpp = other_bpp;
+		} else if ((other_bpp < best_other_bpp) && (rgb_bpp >= best_rgb_bpp)) {
+			best = &vi_list[i];
+			best_rgb_bpp = rgb_bpp;
+			best_other_bpp = other_bpp;
+		} else if(vi_list[i].class == DirectColor && rgb_bpp >= best_rgb_bpp && other_bpp <= best_other_bpp) {
+			// prefer DirectColor-ed visuals to allow color corrections
+			best = &vi_list[i];
+			best_rgb_bpp = rgb_bpp;
+			best_other_bpp = other_bpp;
+		}
+	}
+
+	XFree(vi_list);
+	return best;
+}
+
+static int ignore_all_errors(Display *display, XErrorEvent *error_event) {
+	return 0;
+}
+
 /**
  * Entry point from OS.
  *
@@ -2479,18 +2540,27 @@ main(int argc, char** argv)
 
 	motifDisplay = XtDisplay(motifWindow);
 
+	XSetErrorHandler(ignore_all_errors);
+
 	// Request a 24-bit truecolor visual
 	{
 #ifdef NSMOTIF_USE_GL
 		int attrList[] = {
 			GLX_RGBA,
 			GLX_DOUBLEBUFFER,
-			GLX_RED_SIZE, 1,
-			GLX_BLUE_SIZE, 1,
-			GLX_GREEN_SIZE, 1,
+			GLX_RED_SIZE, 8,
+			GLX_BLUE_SIZE, 8,
+			GLX_GREEN_SIZE, 8,
 			None
 		};
-		int backupAttrList[] = {
+		int backupAttrList1[] = {
+			GLX_RGBA,
+			GLX_RED_SIZE, 8,
+			GLX_BLUE_SIZE, 8,
+			GLX_GREEN_SIZE, 8,
+			None
+		};
+		int backupAttrList2[] = {
 			GLX_RGBA,
 			GLX_RED_SIZE, 2,
 			GLX_BLUE_SIZE, 2,
@@ -2498,24 +2568,28 @@ main(int argc, char** argv)
 			None
 		};
 		int screen;
-		XVisualInfo *vi = glXChooseVisual(motifDisplay, DefaultScreen(motifDisplay), attrList);
+		XVisualInfo *vi = choose_glx_visual(1);
+		//XVisualInfo *vi = glXChooseVisual(motifDisplay, DefaultScreen(motifDisplay), attrList);
+		if(vi && vi->depth >= 12) {
+			motifDoubleBuffered = 1;
+		} else {
+			printf("24bit double-buffered GLX Visual unavailable, switching to single buffered\n");
+
+			motifDoubleBuffered = 0;
+			vi = choose_glx_visual(0);
+			/*vi = glXChooseVisual(motifDisplay, DefaultScreen(motifDisplay), backupAttrList1);
+			if(!vi) {
+				vi = glXChooseVisual(motifDisplay, DefaultScreen(motifDisplay), backupAttrList2);
+			}*/
+		}
+
 		if(!vi) {
 			printf("Failed to find a GLX visual\n");
 			return 1;
 		}
-		motifDoubleBuffered = 1;
-		if(vi->depth < 8) {
-			printf("GLX Visual only %dbit, switching to single buffered\n", vi->depth);
-			vi = glXChooseVisual(motifDisplay, DefaultScreen(motifDisplay), backupAttrList);
-			if(!vi) {
-				printf("Failed to find a backup GLX visual\n");
-				return 1;
-			}
-			motifDoubleBuffered = 0;
-		}
 		screen = vi->screen;
 		motifDepth = vi->depth;
-printf("Selected GL visual depth %d\n", motifDepth);
+printf("Selected GL visual id 0x%X depth %d\n", (int)vi->visualid, motifDepth);
 		motifVisual = vi->visual;
 		motifColormap = XCreateColormap(motifDisplay, RootWindow(motifDisplay, screen), motifVisual, AllocNone);
 
